@@ -25,7 +25,6 @@ export default function SearchSpinner({
       role="status"
       aria-label={label}
     >
-      {/* Dashed ring — matches the design's teal dashed circle */}
       <svg
         width={size}
         height={size}

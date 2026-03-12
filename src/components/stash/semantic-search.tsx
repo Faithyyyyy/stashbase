@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, KeyboardEvent } from "react";
 import SearchSpinner from "../ui/search-spinner";
+import { IcDocs } from "@/icons/icons";
 
 export type FilterOption = "Date" | "Tags" | "Type";
 
@@ -9,6 +10,7 @@ export interface StashResult {
   id: string;
   title: string;
   description: string;
+  url?: string;
   type?: "document" | "link" | "image" | "video";
 }
 
@@ -23,26 +25,7 @@ interface SemanticSearchProps {
 
   placeholder?: string;
 }
-function DocIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-gray-400 shrink-0 mt-px"
-    >
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-    </svg>
-  );
-}
 
-/** The three-line filter funnel icon */
 function FilterIcon({ active }: { active: boolean }) {
   return (
     <svg
@@ -83,7 +66,6 @@ function FilterIcon({ active }: { active: boolean }) {
   );
 }
 
-/** Up/down navigation arrows icon for the footer hint */
 function NavIcon() {
   return (
     <svg
@@ -103,7 +85,6 @@ function NavIcon() {
   );
 }
 
-/** Filter dropdown — appears when the filter icon is clicked */
 function FilterDropdown({
   activeFilters,
   onToggle,
@@ -138,7 +119,6 @@ function FilterDropdown({
   );
 }
 
-/** A single result row */
 function ResultRow({
   result,
   isHighlighted,
@@ -158,13 +138,13 @@ function ResultRow({
         ${isHighlighted ? "bg-gray-50/80" : "hover:bg-gray-50/60"}
       `}
     >
-      <DocIcon />
+      <IcDocs size={18} />
       <div className="flex-1 min-w-0">
-        <p className="text-[13.5px] font-semibold text-gray-900 leading-snug">
+        <p className="text-[14px] font-semibold text-text-primary leading-snug">
           {result.title}
         </p>
         {result.description && (
-          <p className="text-[12.5px] text-gray-500 mt-1 leading-relaxed line-clamp-2">
+          <p className="text-[13px] text-[#404040] mt-1 leading-relaxed font-medium line-clamp-2">
             {result.description}
           </p>
         )}
@@ -173,7 +153,6 @@ function ResultRow({
   );
 }
 
-/** Footer hint bar */
 function FooterHints() {
   return (
     <div className="flex items-center gap-5 px-5 h-12 border-t border-gray-100">
@@ -206,7 +185,6 @@ export default function SemanticSearch({
   debounceMs = 400,
   placeholder = "What are you looking for today?",
 }: SemanticSearchProps) {
-  // ── Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [modalState, setModalState] = useState<ModalState>("idle");
@@ -215,14 +193,12 @@ export default function SemanticSearch({
   const [filterOpen, setFilterOpen] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
 
-  // ── Refs
   const inputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const filterBtnRef = useRef<HTMLButtonElement>(null);
   const filterDropRef = useRef<HTMLDivElement>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Open modal and focus input
   const openModal = () => {
     setModalOpen(true);
     setQuery("");
@@ -231,7 +207,6 @@ export default function SemanticSearch({
     setActiveFilters([]);
     setFilterOpen(false);
     setHighlightIdx(-1);
-    // Small delay so the DOM renders before we focus
     setTimeout(() => inputRef.current?.focus(), 60);
   };
 
@@ -240,7 +215,6 @@ export default function SemanticSearch({
     setFilterOpen(false);
   }, []);
 
-  // ── Escape key
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
       if (!modalOpen) return;
@@ -256,7 +230,6 @@ export default function SemanticSearch({
     return () => window.removeEventListener("keydown", handler);
   }, [modalOpen, filterOpen, closeModal]);
 
-  // ── Click outside to close filter dropdown
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -303,14 +276,6 @@ export default function SemanticSearch({
     runSearch(v, activeFilters);
   };
 
-  const clearQuery = () => {
-    setQuery("");
-    setModalState("idle");
-    setResults([]);
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    inputRef.current?.focus();
-  };
-
   const toggleFilter = (f: FilterOption) => {
     const next = activeFilters.includes(f)
       ? activeFilters.filter((x) => x !== f)
@@ -348,14 +313,15 @@ export default function SemanticSearch({
 
   return (
     <>
-      {/* ── TRIGGER BAR (lives in your Topbar) ────────────────────────────── */}
+      {/* ── TRIGGER BAR (lives in your Topbar) ─── */}
       <button
         onClick={openModal}
         aria-label="Open search"
+        style={{ width: "558px" }}
         className="
           flex items-center gap-2.5 w-full max-w-138.25
           h-10 px-3.5 rounded-full
-          bg-[#F6F6F6] border border-[#E5E5E5] placeholder:text-[#737373]
+          bg-[#F6F6F6] border border-[#E5E5E5] flex-1  placeholder:text-[#737373]
           text-[13.5px] text-gray-400
           hover:border-gray-300 
           transition-all duration-150
@@ -413,7 +379,7 @@ export default function SemanticSearch({
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── INPUT ROW ── */}
-            <div className="relative flex items-center gap-2.5 px-6 h-12 border-b border-gray-100">
+            <div className="relative flex items-center gap-2.5 px-6 h-12  border-b border-gray-100">
               {/* Search icon */}
               <svg
                 width="16"
@@ -440,37 +406,10 @@ export default function SemanticSearch({
                 className="
                   flex-1 bg-transparent outline-none
                   text-sm text-gray-900
-                  placeholder:text-[#737373]
+                  placeholder:text-[#737373] 
                   leading-none
                 "
               />
-
-              {/* Clear button — only when there's a query */}
-              {query.length > 0 && (
-                <button
-                  onClick={clearQuery}
-                  aria-label="Clear search"
-                  className="
-                    shrink-0 w-5 h-5
-                    flex items-center justify-center
-                    rounded-full bg-gray-200
-                    hover:bg-gray-300 transition-colors
-                  "
-                >
-                  <svg
-                    width="8"
-                    height="8"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              )}
 
               {/* Filter button + dropdown */}
               <div className="relative shrink-0" ref={filterDropRef}>

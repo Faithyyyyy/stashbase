@@ -27,16 +27,16 @@ export function Button({
   // ── VARIANTS ─────────────────────────────
   const variants = {
     primary: "bg-foreground text-white hover:bg-accent-hover",
-    secondary: "bg-surface-sunken text-foreground hover:bg-accent-hover",
+    secondary: "bg-[#F5F5F5] text-foreground hover:bg-accent-hover",
     ghost: "bg-transparent text-foreground hover:bg-surface-sunken",
     danger: "bg-red-600 text-white hover:bg-red-700",
   };
 
   // ── SIZES ────────────────────────────────
   const sizes = {
-    sm: "text-base px-3 h-7 rounded-sm",
-    md: "text-base px-4 h-9 rounded-sm",
-    lg: "text-base px-5 h-11 rounded-lg",
+    sm: "text-base font-medium px-3 h-7 rounded-sm",
+    md: "text-base font-medium px-4 h-9 rounded-sm",
+    lg: "text-base font-medium px-5 h-11 rounded-lg",
   };
 
   return (
@@ -53,6 +53,21 @@ export function Button({
       {leftIcon && leftIcon}
       {children}
       {rightIcon && rightIcon}
+    </button>
+  );
+}
+
+type Props = {
+  onSignOut: () => Promise<void>;
+};
+
+export function SignOutButton({ onSignOut }: Props) {
+  return (
+    <button
+      onClick={() => onSignOut()}
+      className="text-sm text-zinc-400 hover:text-white transition-colors"
+    >
+      Sign Out
     </button>
   );
 }

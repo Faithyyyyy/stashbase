@@ -1,27 +1,92 @@
 "use client";
 import { cn } from "@/lib/utils";
 import type { NavKey } from "@/types";
-import { IcHomeline, IcUploads, IcChevRight, IcBookmarks } from "@/icons/icons";
+import {
+  IcHomeline,
+  IcUploads,
+  IcChevRight,
+  IcBookmarks,
+  IcBookmarksFilled,
+  IcHomeFilled,
+} from "@/icons/icons";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import { CollectionsMenu } from "@/components/collection/collection-dropdown";
+import { CollectionSidebarItem } from "@/components/collection/collection-sidebar-items";
+import { NewCollectionModal } from "@/components/collection/new-collection-modal";
+import { DeleteCollectionModal } from "@/components/collection/delete-collection-modal";
+import { useCollections } from "@/context/CollectionContext";
+import { Collection } from "@/types";
+import { createCollection, deleteCollection } from "@/lib/collections";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+
+type Props = {
+  active: NavKey | "none";
+  onNav: (k: NavKey) => void;
+};
 
 const NAV: {
   key: NavKey;
   label: string;
   Icon: React.ComponentType<{ size?: number }>;
+  IconFilled: React.ComponentType<{ size?: number }>;
 }[] = [
-  { key: "home", label: "Home", Icon: IcHomeline },
-  { key: "stash", label: "Stash", Icon: IcBookmarks },
-  { key: "library", label: "Uploads", Icon: IcUploads },
+  { key: "home", label: "Home", Icon: IcHomeline, IconFilled: IcHomeFilled },
+  {
+    key: "stash",
+    label: "Stash",
+    Icon: IcBookmarks,
+    IconFilled: IcBookmarksFilled,
+  },
+  { key: "library", label: "Uploads", Icon: IcUploads, IconFilled: IcUploads },
 ];
 
-export default function Sidebar({
-  active,
-  onNav,
-}: {
-  active: NavKey;
-  onNav: (k: NavKey) => void;
-}) {
+export default function Sidebar({ active, onNav }: Props) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  const {
+    collections,
+    addCollection,
+    removeCollection,
+    collectionsVisible,
+    toggleCollectionsVisible,
+  } = useCollections();
+  const [newCollectionOpen, setNewCollectionOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Collection | null>(null);
+  const handleCreate = async (name: string) => {
+    const newCollection = await createCollection(name);
+    addCollection(newCollection);
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteCollection(id);
+    removeCollection(id);
+    if (pathname.includes(id)) router.push("/dashboard");
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch {
+      setSigningOut(false);
+    }
+  };
+  const initials = user?.displayName
+    ? user.displayName
+        .trim()
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "?";
+
   return (
-    <aside className="w-61.75 shrink-0 h-full py-6 px-6 bg-surface-raised border-r border-[#E5E5E5] flex flex-col">
+    <aside className="w-61.75  relative shrink-0 h-full py-6 px-6 bg-surface-raised border-r border-[#E5E5E5] flex flex-col">
       {/* Logo row */}
       <div className="h-11 flex items-center   shrink-0">
         <span className="text-lg font-bold text-primary tracking-[-0.015em]">
@@ -30,34 +95,86 @@ export default function Sidebar({
       </div>
 
       {/* Workspace picker */}
-      <div className=" py-8  shrink-0">
-        <button className="w-full flex items-center gap-2  pr-6 rounded-md hover:bg-surface-base transition-colors ml-2">
-          <div className="w-5 h-5 rounded-full bg-linear-to-br  from-violet-400 to-rose-400 shrink-0" />
-          <span className=" font-semibold text-lg text-black flex-1 text-left truncate ">
-            Daniel A
+      <div className="py-8 shrink-0">
+        <button className="w-full flex items-center gap-2 pr-6 rounded-md hover:bg-surface-base transition-colors ml-2">
+          <div className="w-8 h-8 rounded-full bg-[#022b3a] flex items-center justify-center shrink-0">
+            <span className="text-white text-xs font-bold ">{initials}</span>
+          </div>
+          <span className="font-semibold text-text-primary flex-1 text-left truncate capitalize">
+            {user?.displayName ?? "..."}
           </span>
           <IcChevRight size={20} className="text-gray" />
         </button>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 px-2 space-y-px overflow-y-auto">
-        {NAV.map(({ key, label, Icon }) => (
+      <nav className=" px-2 space-y-px overflow-y-auto ">
+        {NAV.map(({ key, label, Icon, IconFilled }) => (
           <button
             key={key}
             onClick={() => onNav(key)}
             className={cn(
-              "w-full flex items-center gap-3 px-2.5 mb-4 py-2 rounded-sm text-black text-sm font-medium transition-all duration-100",
+              "w-full flex items-center gap-3 px-2.5 mb-3 py-2.5 rounded-sm text-foreground   transition-all duration-100",
               active === key
-                ? "bg-background font-semibold "
+                ? "bg-background font-medium "
                 : "text-text-secondary hover:bg-background ",
             )}
           >
-            <Icon size={18} />
+            {active === key ? <IconFilled size={18} /> : <Icon size={18} />}
             {label}
           </button>
         ))}
       </nav>
+      {/* Collections section */}
+      <div className="px-2 mt-6">
+        <div className="flex items-center justify-between px-2.5 mb-2">
+          <span className="text-sm font-medium text-gray uppercase tracking-wider">
+            Collections
+          </span>
+          <CollectionsMenu
+            onNewCollection={() => setNewCollectionOpen(true)}
+            onDeleteCollection={() => setDeleteTarget(collections[0] ?? null)}
+            onHideCollections={toggleCollectionsVisible}
+            collectionsVisible={collectionsVisible}
+          />
+        </div>
+
+        {collectionsVisible && (
+          <div className="space-y-px">
+            {collections.map((c) => (
+              <CollectionSidebarItem
+                key={c.id}
+                collection={c}
+                onDeleteClick={setDeleteTarget}
+                isActive={pathname.includes(c.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modals */}
+      <NewCollectionModal
+        open={newCollectionOpen}
+        onClose={() => setNewCollectionOpen(false)}
+        onCreate={handleCreate}
+      />
+
+      <DeleteCollectionModal
+        open={!!deleteTarget}
+        collection={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onDelete={handleDelete}
+      />
+      <div className="absolute bottom-0 mb-6 cursor-pointer ">
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className=" bottom-0  font-semibold gap-2 text-sm text-gray-500 hover:text-red-900 cursor-pointer transition-colors disabled:opacity-50 w-full"
+        >
+          {signingOut ? "Signing out..." : "Sign Out"}
+        </button>
+      </div>
     </aside>
   );
 }

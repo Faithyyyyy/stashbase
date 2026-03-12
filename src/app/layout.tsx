@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
+import { AuthProvider } from "@/context/AuthContext";
+import { CollectionsProvider } from "@/context/CollectionContext";
+import { AddStashProvider } from "@/context/AddStashContext";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -26,9 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistSans.className}  ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          <CollectionsProvider>
+            <AddStashProvider>{children}</AddStashProvider>
+          </CollectionsProvider>
+        </AuthProvider>
       </body>
     </html>
   );

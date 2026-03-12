@@ -1,13 +1,108 @@
+// "use client";
+// import { useEffect, useState } from "react";
+
+// interface ToastProps {
+//   message: string | null;
+//   onDismiss: () => void;
+// }
+
+// export default function Toast({ message, onDismiss }: ToastProps) {
+//   const [visible, setVisible] = useState(false);
+
+// useEffect(() => {
+//   if (message) {
+//     const showTimeout = setTimeout(() => setVisible(true), 0);
+//     const hideTimeout = setTimeout(() => {
+//       setVisible(false);
+//       setTimeout(onDismiss, 300);
+//     }, 3000);
+//     return () => {
+//       clearTimeout(showTimeout);
+//       clearTimeout(hideTimeout);
+//     };
+//   }
+// }, [message, onDismiss]);
+
+// if (!message) return null;
+
+//   return (
+//     <div className={` -translate-x-1/2 transition-all duration-300 `}>
+//       <div
+//         style={{
+//           display: "flex",
+//           alignItems: "center",
+//           gap: "10px",
+//           backgroundColor: "#F0FDF4",
+//           border: "1px solid #BBF7D0",
+//           borderRadius: "12px",
+//           padding: "12px 16px",
+
+//           opacity: visible ? 1 : 0,
+//           transform: visible ? "translateY(0)" : "translateY(-8px)",
+//           minWidth: "340px",
+//           marginBottom: "20px",
+//         }}
+//       >
+//         <div
+//           style={{
+//             width: "20px",
+//             height: "20px",
+//             borderRadius: "9999px",
+//             backgroundColor: "#22C55E",
+//             display: "flex",
+//             alignItems: "center",
+//             justifyContent: "center",
+//             flexShrink: 0,
+//           }}
+//         >
+//           <svg
+//             width="10"
+//             height="10"
+//             viewBox="0 0 24 24"
+//             fill="none"
+//             stroke="white"
+//             strokeWidth="3"
+//             strokeLinecap="round"
+//             strokeLinejoin="round"
+//           >
+//             <polyline points="20 6 9 17 4 12" />
+//           </svg>
+//         </div>
+//         <p
+//           style={{
+//             fontSize: "0.875rem",
+//             color: "#15803D",
+//             flex: 1,
+//           }}
+//         >
+//           <span
+//             style={{
+//               fontWeight: 600,
+//               color: "#111827",
+//             }}
+//           >
+//             Success!
+//           </span>{" "}
+//           {message}
+//         </p>
+//       </div>
+//     </div>
+//   );
+// }
 "use client";
 import { useEffect, useState } from "react";
-import { IcCheck } from "@/icons/icons";
 
 interface ToastProps {
   message: string | null;
   onDismiss: () => void;
+  inline?: boolean;
 }
 
-export default function Toast({ message, onDismiss }: ToastProps) {
+export default function Toast({
+  message,
+  onDismiss,
+  inline = false,
+}: ToastProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -26,29 +121,75 @@ export default function Toast({ message, onDismiss }: ToastProps) {
 
   if (!message) return null;
 
-  return (
+  const inner = (
     <div
-      className="fixed bottom-5 left-1/2 z-60 pointer-events-none animate-toast-in"
-      style={{ transform: "translateX(-50%)" }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        backgroundColor: "#F0FDF4",
+        border: "1px solid #BBF7D0",
+        borderRadius: "12px",
+        padding: "12px 16px",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-8px)",
+        transition: "all 0.3s",
+        minWidth: "340px",
+        pointerEvents: visible ? "auto" : "none",
+      }}
     >
       <div
-        className={`flex items-center gap-2.5 bg-text-primary text-text-inverse text-[12.5px] font-medium
-        px-4 py-2.5 rounded-xl shadow-toast transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
+        style={{
+          width: "20px",
+          height: "20px",
+          borderRadius: "9999px",
+          backgroundColor: "#22C55E",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
       >
-        <div className="w-4.5 h-4.5 rounded-full bg-green-400/20 flex items-center justify-center shrink-0">
-          <IcCheck size={10} className="text-green-400" />
-        </div>
-        {message}
-        <button
-          onClick={() => {
-            setVisible(false);
-            setTimeout(onDismiss, 300);
-          }}
-          className="pointer-events-auto ml-1 text-text-inverse/50 hover:text-text-inverse transition-colors text-xs"
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          ✕
-        </button>
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
       </div>
+      <p style={{ fontSize: "0.875rem", color: "#15803D", flex: 1 }}>
+        <span style={{ fontWeight: 600, color: "#111827" }}>Success!</span>{" "}
+        {message}
+      </p>
+    </div>
+  );
+
+  if (inline) {
+    return <div style={{ marginBottom: "20px" }}>{inner}</div>;
+  }
+
+  if (!message) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: "32px",
+        left: "50%",
+        transform: visible
+          ? "translateX(-50%) translateY(0)"
+          : "translateX(-50%) translateY(-8px)",
+        opacity: visible ? 1 : 0,
+        transition: "all 0.3s",
+        zIndex: 50,
+      }}
+    >
+      {inner}
     </div>
   );
 }

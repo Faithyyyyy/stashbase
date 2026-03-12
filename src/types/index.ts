@@ -29,3 +29,61 @@ export interface FormState {
   type: string;
   tags: string[];
 }
+export type User = {
+  firstName: string;
+  lastName: string;
+  fullName: string | null;
+  email: string | null;
+  avatar: string | null;
+};
+
+export type Collection = {
+  id: string;
+  userId?: string;
+  name: string;
+  description?: string;
+  isDeleted?: boolean;
+  stashCount?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+export type StashTag = {
+  id: string;
+  name: string;
+};
+
+export type Stash = {
+  id: string;
+  userId: string;
+  url: string;
+  title: string;
+  contentType: "video" | "document" | "link" | "image" | "note" | "photo";
+  status: "ready" | "processing";
+  metadata: {
+    thumbnailUrl?: string;
+    cloudinaryUrl?: string;
+    sourceDomain?: string;
+    pageCount?: number;
+    extractedText?: string;
+    thumbnail?: string;
+    description?: string;
+    publishedDate?: string;
+    microlinkRaw?: {
+      image?: { url?: string };
+      screenshot?: { url?: string };
+      logo?: { url?: string };
+      publisher?: string;
+      description?: string;
+      title?: string;
+    };
+  };
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+  Tags: { id: string; name: string }[];
+  Collections: { id: string; name: string }[];
+  // optional fields EditStashModal uses
+  collectionId?: string | null;
+  tags?: string[];
+  notes?: string;
+};
