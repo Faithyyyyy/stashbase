@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Stash, Collection } from "@/types";
 import { IcChevDown, IcX } from "@/icons/icons";
 import { cn } from "@/lib/utils";
+import { updateStash } from "@/lib/stash";
 
 type Props = {
   open: boolean;
@@ -17,7 +18,6 @@ type Props = {
 const STASH_TYPES = [
   { label: "Website", value: "Website" },
   { label: "Video", value: "Video" },
-  { label: "Document", value: "Document" },
   { label: "Note", value: "Note" },
   { label: "Photo", value: "Photo" },
 ];
@@ -58,18 +58,27 @@ export function EditStashModal({
     if (!stash) return;
     setLoading(true);
     try {
-      await onSave(stash.id, {
+      await updateStash(stash.id, {
         collectionId: collectionId || null,
         tags: tag ? [tag] : [],
         notes,
       });
-      onClose();
+      onSave(stash.id, {
+        collectionId: collectionId || null,
+        tags: tag ? [tag] : [],
+        notes,
+      });
     } catch {
       setLoading(false);
     }
   };
 
   if (!open || !stash) return null;
+  console.log(stash);
+  const thumbnail =
+    stash.metadata?.thumbnailUrl ??
+    stash.metadata?.thumbnail ??
+    stash.metadata?.cloudinaryUrl;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -91,23 +100,15 @@ export function EditStashModal({
 
         {/* Stash preview */}
         <div className="px-6 mb-4">
-          <div className="flex items-center gap-3 p-3 bg-[#F5F0E8] rounded-lg">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#022b3a"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
+          <div className="flex items-center gap-3 p-3  rounded-lg">
+            <div className="w-[81px] h-[66px] rounded-sm flex items-center justify-center  shrink-0">
+              <img
+                src={thumbnail}
+                alt=""
+                className="w-full h-full object-cover rounded-sm"
+              />
             </div>
-            <span className="text-sm font-medium text-gray-900 truncate">
+            <span className="text-sm font-medium capitalize text-gray-900 truncate">
               {stash.title}
             </span>
           </div>
@@ -115,38 +116,6 @@ export function EditStashModal({
 
         <div className="space-y-4 px-6">
           {/* Collection */}
-          {/* <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Collection
-            </label>
-            <div className="relative">
-              <select
-                value={collectionId}
-                onChange={(e) => setCollectionId(e.target.value)}
-                className="w-full appearance-none border border-[#D4D4D4] rounded-sm px-4 py-2.5 text-sm text-gray-900 outline-none transition-all bg-white"
-              >
-                <option value="">No collection</option>
-                {collections.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <svg
-                className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </div>
-          </div> */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Collection
@@ -170,20 +139,6 @@ export function EditStashModal({
               </button>
               {collOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 animate-slide-down overflow-hidden max-h-48 overflow-y-auto">
-                  {/* <button
-                    onClick={() => {
-                      setCollectionId("");
-                      setCollOpen(false);
-                    }}
-                    className={cn(
-                      "w-full text-left px-4 py-2 text-[13px] transition-colors",
-                      collectionId === ""
-                        ? "bg-surface-base text-text-primary font-medium"
-                        : "text-text-secondary hover:bg-surface-base",
-                    )}
-                  >
-                    No collection
-                  </button> */}
                   {collections.map((c) => (
                     <button
                       key={c.id}

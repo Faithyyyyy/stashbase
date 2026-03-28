@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useCollections } from "@/context/CollectionContext";
 import type { StashResult } from "@/components/stash/semantic-search";
 import { searchStashes } from "@/lib/stash";
+import NotificationPanel from "./notification-panel";
 
 interface TopbarProps {
   onAdd: () => void;
@@ -26,6 +27,7 @@ export default function Topbar({ onAdd }: TopbarProps) {
   const getPageTitle = () => {
     if (pathname.includes("/stash")) return "Stash";
     if (pathname.includes("/uploads")) return "Uploads";
+    if (pathname.includes("/settings")) return "Settings";
     return null;
   };
   const isStashType = pathname.startsWith("/stash/");
@@ -108,10 +110,14 @@ export default function Topbar({ onAdd }: TopbarProps) {
         >
           Add
         </Button>
-        <div className="cursor-pointer text-gray-500 hover:text-gray-800 transition-colors">
-          <IcBell size={16} />
+        <div className="cursor-pointer transition-colors">
+          {/* <IcBell size={16} /> */}
+          <NotificationPanel />
         </div>
-        <div className="cursor-pointer text-gray-500 hover:text-gray-800 transition-colors">
+        <div
+          className="cursor-pointer transition-colors"
+          onClick={() => router.push("/settings")}
+        >
           <IcSettings size={16} />
         </div>
       </div>

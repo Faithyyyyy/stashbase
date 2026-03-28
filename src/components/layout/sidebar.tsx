@@ -39,14 +39,14 @@ const NAV: {
     Icon: IcBookmarks,
     IconFilled: IcBookmarksFilled,
   },
-  { key: "library", label: "Uploads", Icon: IcUploads, IconFilled: IcUploads },
+  { key: "uploads", label: "Uploads", Icon: IcUploads, IconFilled: IcUploads },
 ];
 
 export default function Sidebar({ active, onNav }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuth();
-  const [signingOut, setSigningOut] = useState(false);
+  const [setSigningOut] = useState(false);
   const {
     collections,
     addCollection,
@@ -67,14 +67,6 @@ export default function Sidebar({ active, onNav }: Props) {
     if (pathname.includes(id)) router.push("/dashboard");
   };
 
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      await signOut();
-    } catch {
-      setSigningOut(false);
-    }
-  };
   const initials = user?.displayName
     ? user.displayName
         .trim()
@@ -93,7 +85,6 @@ export default function Sidebar({ active, onNav }: Props) {
           StashBase
         </span>
       </div>
-
       {/* Workspace picker */}
       <div className="py-8 shrink-0">
         <button className="w-full flex items-center gap-2 pr-6 rounded-md hover:bg-surface-base transition-colors ml-2">
@@ -106,7 +97,6 @@ export default function Sidebar({ active, onNav }: Props) {
           <IcChevRight size={20} className="text-gray" />
         </button>
       </div>
-
       {/* Nav items */}
       <nav className=" px-2 space-y-px overflow-y-auto ">
         {NAV.map(({ key, label, Icon, IconFilled }) => (
@@ -152,29 +142,18 @@ export default function Sidebar({ active, onNav }: Props) {
           </div>
         )}
       </div>
-
       {/* Modals */}
       <NewCollectionModal
         open={newCollectionOpen}
         onClose={() => setNewCollectionOpen(false)}
         onCreate={handleCreate}
       />
-
       <DeleteCollectionModal
         open={!!deleteTarget}
         collection={deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onDelete={handleDelete}
       />
-      <div className="absolute bottom-0 mb-6 cursor-pointer ">
-        <button
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className=" bottom-0  font-semibold gap-2 text-sm text-gray-500 hover:text-red-900 cursor-pointer transition-colors disabled:opacity-50 w-full"
-        >
-          {signingOut ? "Signing out..." : "Sign Out"}
-        </button>
-      </div>
     </aside>
   );
 }

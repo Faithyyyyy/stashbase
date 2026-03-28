@@ -18,27 +18,6 @@ export type AuthResponse = {
   };
 };
 
-// export async function register(payload: {
-//   email: string;
-//   password: string;
-//   displayName: string;
-// }): Promise<AuthResponse> {
-//   return api<AuthResponse>("/api/auth/register", {
-//     method: "POST",
-//     body: payload,
-//   });
-// }
-
-// export async function login(payload: {
-//   email: string;
-//   password: string;
-// }): Promise<AuthResponse> {
-//   return api<AuthResponse>("/api/auth/login", {
-//     method: "POST",
-//     body: payload,
-//   });
-// }
-
 export async function register(payload: {
   email: string;
   password: string;
@@ -63,7 +42,7 @@ export async function login(payload: {
   });
   localStorage.setItem("sb_token", res.data.accessToken);
   localStorage.setItem("sb_refresh_token", res.data.refreshToken);
-  localStorage.setItem("sb_user", JSON.stringify(res.data.user)); // ← is this line here?
+  localStorage.setItem("sb_user", JSON.stringify(res.data.user));
   return res;
 }
 

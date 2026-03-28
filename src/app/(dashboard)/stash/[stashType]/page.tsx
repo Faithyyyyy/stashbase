@@ -10,12 +10,16 @@ import EmptyState from "@/components/stash/empty-state";
 import { IcGrid, IcList } from "@/icons/icons";
 import { cn } from "@/lib/utils";
 import StashGrid from "@/components/stash/stash-grid";
+import { useCollections } from "@/context/CollectionContext";
+import { EditStashModal } from "@/components/stash/edit-stash-modal";
 export default function StashTypePage() {
   const { stashType } = useParams<{ stashType: string }>();
   const { openAddModal } = useAddStash();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [stashes, setStashes] = useState<Stash[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editStash, setEditStash] = useState<Stash | null>(null);
+  const { collections } = useCollections();
   useEffect(() => {
     if (!stashType) return;
     getStashesByType(stashType)
@@ -73,7 +77,25 @@ export default function StashTypePage() {
         </div>
       </div>
 
-      <StashGrid items={stashes} view={view} mode="home" />
+      <StashGrid
+        items={stashes}
+        view={view}
+        mode="collection"
+        onEdit={(stash) => setEditStash(stash)}
+      />
+      <EditStashModal
+        key={editStash?.id ?? "none"}
+        open={!!editStash}
+        stash={editStash!}
+        collections={collections}
+        onClose={() => setEditStash(null)}
+        onSave={async () => {
+          setEditStash(null);
+          getStashesByType(stashType)
+            .then((data) => setStashes(data.allStashes))
+            .catch(() => {});
+        }}
+      />
     </div>
   );
 }

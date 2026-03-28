@@ -6,6 +6,7 @@ type CreateStashPayload = {
   title: string;
   collectionId?: string;
   contentType?: string;
+  reminderAt?: string;
 };
 
 type CreateStashResponse = {
@@ -84,4 +85,61 @@ export async function getStashesByType(type: string): Promise<{
     data: { allStashes: Stash[]; stashesByType: Record<string, Stash[]> };
   }>(`/api/stashes?type=${type}`);
   return res.data;
+}
+export async function createStashUpload(payload: {
+  file: File;
+  title: string;
+  tagName?: string;
+  collectionId?: string;
+}): Promise<CreateStashResponse> {
+  const formData = new FormData();
+  formData.append("file", payload.file);
+  formData.append("title", payload.title);
+  if (payload.tagName) formData.append("tagName", payload.tagName);
+  if (payload.collectionId)
+    formData.append("collectionId", payload.collectionId);
+
+  const token = localStorage.getItem("sb_token");
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/stashes`,
+    {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    },
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Upload failed");
+  }
+
+  return res.json();
+}
+export async function getUploads(): Promise<Stash[]> {
+  const types = ["photo", "video", "document", "note"];
+  const results = await Promise.all(
+    types.map((type) =>
+      api<{
+        success: boolean;
+        data: { allStashes: Stash[] };
+      }>(`/api/stashes?type=${type}`).then((res) => res.data.allStashes),
+    ),
+  );
+  return results.flat();
+}
+export async function updateStash(
+  id: string,
+  payload: {
+    collectionId?: string | null;
+    tags?: string[];
+    notes?: string;
+  },
+): Promise<void> {
+  await api(`/api/stashes/${id}`, {
+    method: "PATCH",
+    body: payload,
+  });
 }

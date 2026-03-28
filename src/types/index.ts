@@ -1,7 +1,7 @@
 export type NavKey =
   | "home"
   | "tasks"
-  | "library"
+  | "uploads"
   | "stash"
   | "integrations"
   | "settings";

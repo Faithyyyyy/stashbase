@@ -11,6 +11,10 @@ import { getStashes } from "@/lib/stash";
 import { useAddStash } from "@/context/AddStashContext";
 import Toast from "@/components/stash/Toast";
 import StashCardSkeleton from "@/components/stash/stash-skeleton";
+import { useCollections } from "@/context/CollectionContext";
+import { EditStashModal } from "@/components/stash/edit-stash-modal";
+import { getStashesByType } from "@/lib/stash";
+import { useParams } from "next/navigation";
 
 export default function Home() {
   const { refreshKey } = useStashRefresh();
@@ -18,12 +22,28 @@ export default function Home() {
   const [stashes, setStashes] = useState<Stash[]>([]);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
+  const [editStash, setEditStash] = useState<Stash | null>(null);
+  const { collections } = useCollections();
+  const { stashType } = useParams<{ stashType: string }>();
   useEffect(() => {
     getStashes()
       .then((data) => setStashes(data.allStashes))
       .catch(() => setStashes([]))
       .finally(() => setLoading(false));
   }, [refreshKey]);
+  console.log(stashes);
+  useEffect(() => {
+    if (!stashType) return;
+    getStashesByType(stashType)
+      .then((data) => {
+        setStashes(data.allStashes);
+      })
+      .catch((err) => {
+        console.log("error:", err);
+        setStashes([]);
+      })
+      .finally(() => setLoading(false));
+  }, [stashType]);
 
   return (
     <div className="flex flex-col">
@@ -78,8 +98,27 @@ export default function Home() {
       ) : stashes.length === 0 ? (
         <EmptyState onAdd={openAddModal} />
       ) : (
-        <StashGrid items={stashes} view={view} />
+        <StashGrid
+          items={stashes}
+          view={view}
+          mode="collection"
+          onEdit={(stash) => setEditStash(stash)}
+        />
       )}
+
+      <EditStashModal
+        key={editStash?.id ?? "none"}
+        open={!!editStash}
+        stash={editStash!}
+        collections={collections}
+        onClose={() => setEditStash(null)}
+        onSave={async () => {
+          setEditStash(null);
+          getStashesByType(stashType)
+            .then((data) => setStashes(data.allStashes))
+            .catch(() => {});
+        }}
+      />
     </div>
   );
 }

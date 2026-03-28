@@ -1,38 +1,87 @@
 "use client";
 import type { Stash } from "@/types";
 import { StashCard } from "./stash-card";
-import { it } from "node:test";
-
+import { useParams } from "next/navigation";
+import {
+  IcFolderOpen,
+  IcImage,
+  IcLink,
+  IcNote,
+  IcVideo,
+  IcCalendar,
+} from "@/icons/icons";
+import { useState } from "react";
+import StashPreviewModal from "./stash-preview-modal";
+import { EditStashModal } from "./edit-stash-modal";
+import { useCollections } from "@/context/CollectionContext";
+import edit from "@/icons/edit.svg";
+import Image from "next/image";
 interface StashGridProps {
   items: Stash[];
   view: "grid" | "list";
   mode?: "home" | "collection";
   onEdit?: (stash: Stash) => void;
 }
+function ContentTypeIcon({ type }: { type: Stash["contentType"] }) {
+  switch (type) {
+    case "video":
+      return <IcVideo size={13} className="text-text-primary" />;
+    case "document":
+      return <IcFolderOpen size={13} className="text-text-primary" />;
+    case "link":
+      return <IcLink size={13} className="text-text-primary" />;
+    case "photo":
+      return <IcImage size={13} className="text-text-primary" />;
+    case "note":
+      return <IcNote size={13} className="text-text-primary" />;
+    default:
+      return <IcFolderOpen size={13} className="text-text-primary" />;
+  }
+}
 
 export default function StashGrid({
   items,
   view,
   mode = "home",
+  onEdit,
 }: StashGridProps) {
+  const { id } = useParams<{ id: string }>();
+  const [previewStash, setPreviewStash] = useState<Stash | null>(null);
+  const [editStash, setEditStash] = useState<Stash | null>(null);
+  const { collections } = useCollections();
+  const handleView = (item: Stash) => {
+    switch (item.contentType) {
+      case "link":
+        window.open(item.url, "_blank");
+        break;
+      case "document":
+        window.open(item.metadata?.cloudinaryUrl ?? item.url, "_blank");
+        break;
+      case "photo":
+      case "video":
+      case "note":
+        setPreviewStash(item);
+        break;
+      default:
+        window.open(item.url, "_blank");
+    }
+  };
   if (view === "list") {
     return (
       <div className="space-y-2 w-full">
         {items.map((item, i) => {
           const thumbnail =
-            item.metadata?.microlinkRaw?.image?.url ??
-            item.metadata?.thumbnail ??
-            item.metadata?.thumbnailUrl;
-
+            item.metadata?.thumbnailUrl ?? item.metadata?.thumbnail;
           const isLink = item.contentType === "link";
 
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3.5 w-full bg-white border  border-[#E5E5E5]  rounded-lg px-6 py-8 hover:border-border-default hover:shadow-card transition-all cursor-pointer group animate-card-in"
+              className="flex items-center gap-4 w-full bg-white border-b border-[#D4D4D4]  px-4 py-3  transition-all cursor-pointer group animate-card-in"
               style={{ animationDelay: `${i * 30}ms` }}
             >
-              <div className="w-12 h-9 rounded-md overflow-hidden shrink-0 bg-[#F5F0E8]">
+              {/* Thumbnail */}
+              <div className="w-20 h-20 rounded-sm overflow-hidden shrink-0 bg-[#F5F0E8]">
                 {thumbnail ? (
                   <img
                     src={thumbnail}
@@ -66,43 +115,88 @@ export default function StashGrid({
                   </div>
                 )}
               </div>
+
+              {/* Title + meta */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold capitalize text-text-primary truncate">
+                <p className="text-lg mb-6 font-semibold capitalize text-[#404040] truncate">
                   {item.title}
                 </p>
-                <p className="text-xs text-text-primary font-medium flex items-center capitalize mt-1.5">
-                  {item.Collections?.[0]?.name ?? "Uncategorised"}{" "}
-                  <div
-                    style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "9999px",
-                      backgroundColor: "#D4D4D4",
-                      marginInline: "6px",
-                    }}
-                  />
-                  {item.contentType}
+                <p className="text-xs text-text-tertiary font-medium flex items-center capitalize mt-1">
+                  <span className="flex items-center gap-1">
+                    {item.Tags.length > 0 && (
+                      // <StashTypeIcon tagName={stash.Tags[0].name} />
+                      <ContentTypeIcon type={item.contentType} />
+                    )}
+                    <span className="text-xs ">
+                      {item.contentType ?? "Uncategorised"}
+                    </span>
+                  </span>
+                  <div className="w-1 h-1 rounded-full bg-[#D4D4D4] mx-2" />
+                  <span className="flex items-center gap-1">
+                    <IcCalendar size={13} className="text-text-primary " />
+                    <span className="text-xs text-text-primary">
+                      {new Date(item.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </span>
                 </p>
               </div>
-              <div className="flex gap-1 shrink-0">
-                {item.Tags.slice(0, 2).map((t) => (
-                  <span
-                    key={t.id}
-                    className="text-[10.5px] bg-tag-bg text-tag-text px-1.5 py-0.5 rounded-[4px] font-medium"
+
+              {/* View + Edit buttons — visible on hover */}
+              <div className="flex items-center gap-2  transition-opacity shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleView(item);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-medium text-text-secondary bg-surface-base border border-border px-3 py-1.5 rounded-sm hover:border-border-strong transition-colors"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   >
-                    {t.name}
-                  </span>
-                ))}
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  View
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(item);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-medium text-text-secondary bg-surface-base border border-border px-3 py-1.5 rounded-sm hover:border-border-strong transition-colors"
+                >
+                  <Image src={edit} alt="edit icon" height={14} width={14} />
+                  Edit
+                </button>
               </div>
-              <span className="text-[11px] text-text-disabled shrink-0">
-                {new Date(item.createdAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </span>
             </div>
           );
         })}
+        <StashPreviewModal
+          stash={previewStash}
+          onClose={() => setPreviewStash(null)}
+        />
+        <EditStashModal
+          key={editStash?.id ?? "none"}
+          open={!!editStash}
+          stash={editStash}
+          defaultCollectionId={id}
+          collections={collections}
+          onClose={() => setEditStash(null)}
+          onSave={async () => {
+            setEditStash(null);
+          }}
+        />
       </div>
     );
   }
@@ -115,11 +209,22 @@ export default function StashGrid({
           stash={item}
           collectionName={item.Collections?.[0]?.name}
           onView={() => window.open(item.url, "_blank")}
-          onEdit={() => {}}
+          onEdit={() => setEditStash(item as unknown as Stash)}
           mode={mode}
           // style={{ animationDelay: `${i * 35}ms` }}
         />
       ))}
+      <EditStashModal
+        key={editStash?.id ?? "none"}
+        open={!!editStash}
+        stash={editStash}
+        defaultCollectionId={id}
+        collections={collections}
+        onClose={() => setEditStash(null)}
+        onSave={async () => {
+          setEditStash(null);
+        }}
+      />
     </div>
   );
 }

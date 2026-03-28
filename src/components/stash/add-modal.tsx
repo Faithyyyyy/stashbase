@@ -2,27 +2,41 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { StashItem } from "@/types";
-import { IcChevDown, IcAdd, IcX } from "@/icons/icons";
+import { IcChevDown, IcAdd, IcX, IcCal } from "@/icons/icons";
 import { useCollections } from "@/context/CollectionContext";
 import { createCollection } from "@/lib/collections";
 import { createStash } from "@/lib/stash";
 import { NewCollectionModal } from "../collection/new-collection-modal";
+import { CalendarPicker } from "./calendar-picker";
+import { createPortal } from "react-dom";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AddModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (item: StashItem) => void;
+  onBack?: () => void;
 }
 
 const STASH_TYPES = [
   { label: "Website", value: "Website" },
-  { label: "Video", value: "Video" },
-  { label: "Document", value: "Document" },
-  { label: "Note", value: "Note" },
-  { label: "Photo", value: "Photo" },
+  // { label: "Video", value: "Video" },
+  // { label: "Document", value: "Document" },
+  // { label: "Note", value: "Note" },
+  // { label: "Photo", value: "Photo" },
 ];
 
-export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
+export default function AddModal({
+  open,
+  onClose,
+  onSuccess,
+  onBack,
+}: AddModalProps) {
   const { collections, addCollection } = useCollections();
 
   const [url, setUrl] = useState("");
@@ -34,24 +48,29 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
   const [newCollectionOpen, setNewCollectionOpen] = useState(false);
   const [collOpen, setCollOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
+  const [reminderDate, setReminderDate] = useState<string>("");
+  const [reminderTime, setReminderTime] = useState<string>("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [timeOpen, setTimeOpen] = useState(false);
+  const timeRef = useRef<HTMLDivElement>(null);
 
   const collRef = useRef<HTMLDivElement>(null);
   const tagsRef = useRef<HTMLDivElement>(null);
+  const [calendarPos, setCalendarPos] = useState({ top: 0, left: 0 });
+  const calendarTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Reset on open
-  useEffect(() => {
-    if (open) {
-      Promise.resolve().then(() => {
-        setUrl("");
-        setTitle("");
-        setCollectionId("");
-        setTag("");
-        setError("");
-        setCollOpen(false);
-        setTagsOpen(false);
-      });
-    }
-  }, [open]);
+  const openCalendar = () => {
+    if (!calendarTriggerRef.current) return;
+    const rect = calendarTriggerRef.current.getBoundingClientRect();
+    const calendarHeight = 320;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top =
+      spaceBelow >= calendarHeight
+        ? rect.bottom + 4
+        : rect.top - calendarHeight - 4;
+    setCalendarPos({ top, left: rect.left });
+    setCalendarOpen(true);
+  };
 
   // Escape to close
   useEffect(() => {
@@ -76,6 +95,14 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
 
   const selectedCollection = collections.find((c) => c.id === collectionId);
   const selectedTag = STASH_TYPES.find((t) => t.value === tag);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (timeRef.current && !timeRef.current.contains(e.target as Node))
+        setTimeOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
 
   const handleAdd = async () => {
     if (!url.trim()) {
@@ -84,15 +111,44 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
     }
     setError("");
     setLoading(true);
+    // const buildReminderAt = () => {
+    //   if (!reminderDate) return undefined;
+    //   const [day, month, year] = reminderDate.split("/");
+    //   const hour = reminderTime.includes("pm")
+    //     ? (parseInt(reminderTime) % 12) + 12
+    //     : parseInt(reminderTime) % 12;
+    //   return `${year}-${month}-${day}T${String(hour).padStart(2, "0")}:00:00Z`;
+    // };
+    const buildReminderAt = () => {
+      if (!reminderDate) return undefined;
+      const [day, month, year] = reminderDate.split("/");
 
+      // parse time like "09:00am" or "01:00pm"
+      const timeMatch = reminderTime.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
+      if (!timeMatch) return undefined;
+
+      let hours = parseInt(timeMatch[1]);
+      const minutes = timeMatch[2];
+      const meridiem = timeMatch[3];
+
+      if (meridiem === "pm" && hours !== 12) hours += 12;
+      if (meridiem === "am" && hours === 12) hours = 0;
+
+      const fullYear =
+        parseInt(year) < 100 ? 2000 + parseInt(year) : parseInt(year);
+
+      return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${String(hours).padStart(2, "0")}:${minutes}:00.000Z`;
+    };
     try {
       const res = await createStash({
         url: url.trim(),
         title: title.trim() || url.trim(),
         ...(collectionId && { collectionId }),
         ...(tag && {
-          tagName: tag as "Note" | "Website" | "Video" | "Photo" | "Document",
+          // tagName: tag as "Note" | "Website" | "Video" | "Photo" | "Document",
+          tagName: tag as "Website",
         }),
+        ...(reminderDate && { reminderAt: buildReminderAt() }),
       });
 
       const item: StashItem = {
@@ -167,7 +223,7 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="flex items-center border-b border-border justify-between px-6 py-4">
+              {/* <div className="flex items-center border-b border-border justify-between px-6 py-4">
                 <h2 className="text-[18px] font-semibold text-black">
                   Add to stash
                 </h2>
@@ -177,8 +233,39 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
                 >
                   <IcX size={24} />
                 </button>
+              </div> */}
+              <div className="flex items-center border-b border-border justify-between px-6 py-4">
+                <div className="flex items-center gap-3">
+                  {onBack && (
+                    <button
+                      onClick={onBack}
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-base transition-colors"
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="15 18 9 12 15 6" />
+                      </svg>
+                    </button>
+                  )}
+                  <h2 className="text-[18px] font-semibold text-black">
+                    Add to stash
+                  </h2>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-base transition-colors"
+                >
+                  <IcX size={24} />
+                </button>
               </div>
-
               {/* Form */}
               {collections.length === 0 ? (
                 <div className="px-6 py-8 flex flex-col items-center text-center gap-3">
@@ -278,7 +365,7 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
                                 setCollOpen(false);
                               }}
                               className={cn(
-                                "w-full text-left px-4 py-2 text-[13px] transition-colors",
+                                "w-full text-left capitalize px-4 py-2 text-[13px] transition-colors",
                                 collectionId === c.id
                                   ? "bg-surface-base text-text-primary font-medium"
                                   : "text-text-secondary hover:bg-surface-base",
@@ -342,6 +429,27 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
                       )}
                     </div>
                   </Field>
+                  {/* Reminder */}
+                  <Field label="Reminder">
+                    <div className="flex items-center gap-2">
+                      {/* Date input */}
+                      <button
+                        ref={calendarTriggerRef}
+                        type="button"
+                        onClick={openCalendar}
+                        className={cn(
+                          inputCls,
+                          "flex-1 flex items-center justify-between text-left",
+                          !reminderDate && "text-text-disabled",
+                        )}
+                      >
+                        <span>{reminderDate || "DD/MM/YY"}</span>
+                        <IcCal size={18} />
+                      </button>
+
+                      {/* Time dropdown */}
+                    </div>
+                  </Field>
                 </div>
               )}
 
@@ -378,6 +486,38 @@ export default function AddModal({ open, onClose, onSuccess }: AddModalProps) {
           setNewCollectionOpen(false);
         }}
       />
+      {calendarOpen &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <>
+            {/* backdrop to close */}
+            <div
+              className="fixed inset-0 z-[9998]"
+              onClick={() => setCalendarOpen(false)}
+            />
+            <div
+              className="fixed z-[9999] bg-white rounded-xl shadow-modal border border-border"
+              style={{ top: calendarPos.top, left: calendarPos.left }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CalendarPicker
+                value={reminderDate}
+                // onSelect={(date) => {
+                //   setReminderDate(date);
+                //   setCalendarOpen(false);
+                // }}
+                // onClose={() => setCalendarOpen(false)}
+                onSelect={(date) => setReminderDate(date)}
+                onClose={() => setCalendarOpen(false)}
+                reminderTime={reminderTime}
+                onTimeChange={(t) => setReminderTime(t)}
+                timeOpen={timeOpen}
+                onTimeToggle={() => setTimeOpen((o) => !o)}
+              />
+            </div>
+          </>,
+          document.body,
+        )}
     </>
   );
 }

@@ -55,7 +55,7 @@ export default function CollectionPage() {
               stash={stash}
               collectionName={collection?.name}
               onView={() => window.open(stash.url, "_blank")}
-              onEdit={() => setEditStash(stash as unknown as Stash)} // ← unchanged
+              onEdit={() => setEditStash(stash as unknown as Stash)}
               mode="collection"
             />
           ))}
@@ -71,6 +71,10 @@ export default function CollectionPage() {
         onClose={() => setEditStash(null)}
         onSave={async () => {
           setEditStash(null);
+          if (!id) return;
+          getCollectionWithStashes(id)
+            .then(setData)
+            .catch(() => setData(null));
         }}
       />
     </div>
