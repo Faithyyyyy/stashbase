@@ -26,7 +26,6 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage immediately — no effect needed
   const [user, setUser] = useState<AuthUser | null>(() => {
     if (typeof window === "undefined") return null;
     const cached = localStorage.getItem("sb_user");

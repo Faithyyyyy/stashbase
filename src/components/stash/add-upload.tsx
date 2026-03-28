@@ -53,15 +53,6 @@ export default function UploadModal({
   const [timeOpen, setTimeOpen] = useState(false);
   const calendarTriggerRef = useRef<HTMLButtonElement>(null);
 
-  //   useEffect(() => {
-  //     if (open) {
-  //       setFile(null);
-  //       setTitle("");
-  //       setCollectionId("");
-  //       setError("");
-  //       setCollOpen(false);
-  //     }
-  //   }, [open]);
   useEffect(() => {
     if (open) {
       Promise.resolve().then(() => {
@@ -126,29 +117,6 @@ export default function UploadModal({
     if (f) handleFile(f);
   };
 
-  // const handleAdd = async () => {
-  //   if (!file) {
-  //     setError("Please select a file");
-  //     return;
-  //   }
-  //   setError("");
-  //   setLoading(true);
-  //   try {
-  //     // create a local object URL to use as the stash URL for uploads
-  //     const objectUrl = URL.createObjectURL(file);
-  //     await createStashUpload({
-  //       file,
-  //       title: title || file.name,
-  //       ...(tag && { tagName: tag }),
-  //       ...(collectionId && { collectionId }),
-  //     });
-  //     setLoading(false);
-  //     onSuccess();
-  //   } catch (err: unknown) {
-  //     setError(err instanceof Error ? err.message : "Failed to upload");
-  //     setLoading(false);
-  //   }
-  // };
   const handleAdd = async () => {
     if (!file) {
       setError("Please select a file");
@@ -194,17 +162,6 @@ export default function UploadModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          {/* <div className="flex items-center border-b border-border justify-between px-6 py-4">
-            <h2 className="text-[18px] font-semibold text-black">
-              Add to stash
-            </h2>
-            <button
-              onClick={onClose}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-base transition-colors"
-            >
-              <IcX size={24} />
-            </button>
-          </div> */}
           <div className="flex items-center border-b border-border justify-between px-6 py-4">
             <div className="flex items-center gap-3">
               {onBack && (
@@ -487,33 +444,6 @@ export default function UploadModal({
           setNewCollectionOpen(false);
         }}
       />
-      {/* {calendarOpen &&
-              typeof window !== "undefined" &&
-              createPortal(
-                <>
-                  <div
-                    className="fixed inset-0 z-[9998]"
-                    onClick={() => setCalendarOpen(false)}
-                  />
-                  <div
-                    className="fixed z-[9999] bg-white rounded-xl shadow-modal border border-border"
-                    style={{ top: calendarPos.top, left: calendarPos.left }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <CalendarPicker
-                      value={reminderDate}
-  
-                      onSelect={(date) => setReminderDate(date)}
-                      onClose={() => setCalendarOpen(false)}
-                      reminderTime={reminderTime}
-                      onTimeChange={(t) => setReminderTime(t)}
-                      timeOpen={timeOpen}
-                      onTimeToggle={() => setTimeOpen((o) => !o)}
-                    />
-                  </div>
-                </>,
-                document.body,
-              )} */}
       {calendarOpen &&
         typeof window !== "undefined" &&
         createPortal(

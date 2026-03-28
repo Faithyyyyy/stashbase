@@ -41,7 +41,7 @@ export function AddStashProvider({ children }: { children: ReactNode }) {
         modalOpen,
         pickerOpen,
         uploadOpen,
-        openAddModal: () => setPickerOpen(true), // ← opens picker first
+        openAddModal: () => setPickerOpen(true),
         closeAddModal: () => setModalOpen(false),
         openLinkModal: () => {
           setPickerOpen(false);

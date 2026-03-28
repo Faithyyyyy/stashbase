@@ -10,12 +10,6 @@ import { NewCollectionModal } from "../collection/new-collection-modal";
 import { CalendarPicker } from "./calendar-picker";
 import { createPortal } from "react-dom";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 interface AddModalProps {
   open: boolean;
   onClose: () => void;
@@ -123,7 +117,6 @@ export default function AddModal({
       if (!reminderDate) return undefined;
       const [day, month, year] = reminderDate.split("/");
 
-      // parse time like "09:00am" or "01:00pm"
       const timeMatch = reminderTime.match(/^(\d{1,2}):(\d{2})(am|pm)$/);
       if (!timeMatch) return undefined;
 
@@ -223,17 +216,6 @@ export default function AddModal({
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              {/* <div className="flex items-center border-b border-border justify-between px-6 py-4">
-                <h2 className="text-[18px] font-semibold text-black">
-                  Add to stash
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-base transition-colors"
-                >
-                  <IcX size={24} />
-                </button>
-              </div> */}
               <div className="flex items-center border-b border-border justify-between px-6 py-4">
                 <div className="flex items-center gap-3">
                   {onBack && (
@@ -328,7 +310,7 @@ export default function AddModal({
                     />
                   </Field>
 
-                  {/* Collection dropdown — real collections */}
+                  {/* Collection dropdown*/}
                   <Field label="Collection">
                     <div ref={collRef} className="relative">
                       <button
@@ -446,8 +428,6 @@ export default function AddModal({
                         <span>{reminderDate || "DD/MM/YY"}</span>
                         <IcCal size={18} />
                       </button>
-
-                      {/* Time dropdown */}
                     </div>
                   </Field>
                 </div>
@@ -502,11 +482,6 @@ export default function AddModal({
             >
               <CalendarPicker
                 value={reminderDate}
-                // onSelect={(date) => {
-                //   setReminderDate(date);
-                //   setCalendarOpen(false);
-                // }}
-                // onClose={() => setCalendarOpen(false)}
                 onSelect={(date) => setReminderDate(date)}
                 onClose={() => setCalendarOpen(false)}
                 reminderTime={reminderTime}

@@ -1,5 +1,5 @@
 "use client";
-import { IcBell, IcSettings, IcAdd } from "@/icons/icons";
+import { IcSettings, IcAdd } from "@/icons/icons";
 import { Button } from "@/components/ui/index";
 import SemanticSearch from "@/components/stash/semantic-search";
 import { useRouter, usePathname } from "next/navigation";

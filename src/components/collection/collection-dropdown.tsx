@@ -13,7 +13,6 @@ type Props = {
 
 export function CollectionsMenu({
   onNewCollection,
-  onDeleteCollection,
   onHideCollections,
   collectionsVisible,
 }: Props) {

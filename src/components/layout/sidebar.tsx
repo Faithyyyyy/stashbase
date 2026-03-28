@@ -45,8 +45,8 @@ const NAV: {
 export default function Sidebar({ active, onNav }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, signOut } = useAuth();
-  const [setSigningOut] = useState(false);
+  const { user } = useAuth();
+
   const {
     collections,
     addCollection,

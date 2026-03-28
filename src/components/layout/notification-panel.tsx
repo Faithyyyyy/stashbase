@@ -5,7 +5,6 @@ import {
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-  deleteNotification,
   Notification,
   openNotificationStream,
 } from "@/lib/notification";
@@ -74,11 +73,11 @@ export default function NotificationPanel() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const handleMarkAllRead = async () => {
-    await markAllNotificationsRead();
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    setUnreadCount(0);
-  };
+  // const handleMarkAllRead = async () => {
+  //   await markAllNotificationsRead();
+  //   setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  //   setUnreadCount(0);
+  // };
 
   const handleMarkRead = async (id: string) => {
     await markNotificationRead(id);
@@ -86,10 +85,6 @@ export default function NotificationPanel() {
     fetchNotifications();
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteNotification(id);
-    fetchNotifications();
-  };
   useEffect(() => {
     if (!user) return;
     const token = localStorage.getItem("sb_token");
@@ -100,7 +95,7 @@ export default function NotificationPanel() {
       Promise.resolve().then(() => fetchNotifications());
     });
 
-    return () => eventSource.close(); // cleanup on unmount
+    return () => eventSource.close();
   }, [user]);
 
   const groups = groupByDate(notifications);
@@ -148,14 +143,6 @@ export default function NotificationPanel() {
               Notification
             </h3>
             <div className="flex items-center gap-3">
-              {/* {unreadCount > 0 && (
-                <button
-                  onClick={handleMarkAllRead}
-                  className="text-xs font-medium text-text-tertiary hover:text-text-primary transition-colors"
-                >
-                  Mark all as read
-                </button>
-              )} */}
               <button
                 onClick={() => setOpen(false)}
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-text-tertiary hover:text-text-secondary hover:bg-surface-base transition-colors"
@@ -204,9 +191,6 @@ export default function NotificationPanel() {
                     {group.items.map((n) => (
                       <div
                         key={n.id}
-                        // className={`px-5 py-4  transition-colors ${
-                        //   !n.isRead ? "bg-[#FAFAFA]" : "hover:bg-[#F0FDF4]"
-                        // }`}
                         className="px-5 py-4  bg-[#fff] hover:bg-[#FAFAFA] transition-colors"
                       >
                         <div className="flex items-start gap-3">
@@ -216,9 +200,6 @@ export default function NotificationPanel() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-text-primary mb-0.5">
                               {n.title}
-                              {/* {!n.isRead && (
-                                <span className="ml-2 inline-block w-1 h-1 rounded-full bg-green-500 align-middle" />
-                              )} */}
                             </p>
                             <p className="text-sm text-text-secondary leading-relaxed line-clamp-2">
                               {n.content}
@@ -230,12 +211,6 @@ export default function NotificationPanel() {
                               >
                                 View
                               </button>
-                              {/* <button
-                                onClick={() => handleDelete(n.id)}
-                                className="text-xs font-medium text-text-tertiary hover:text-red-500 transition-colors"
-                              >
-                                Dismiss
-                              </button> */}
                             </div>
                           </div>
                         </div>

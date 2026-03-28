@@ -82,7 +82,6 @@ export default function Home() {
         </div>
       </div>
       {/* toast */}
-      {/* <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} /> */}
       <Toast
         message={toastMessage}
         onDismiss={() => setToastMessage(null)}
