@@ -143,3 +143,12 @@ export async function updateStash(
     body: payload,
   });
 }
+export async function getStashById(id: string): Promise<Stash> {
+  const res = await api<{ success: boolean; data: Stash }>(
+    `/api/stashes/${id}`,
+  );
+  return res.data;
+}
+export async function deleteStash(id: string): Promise<void> {
+  await api(`/api/stashes/${id}/delete`, { method: "PUT" });
+}

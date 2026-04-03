@@ -12,13 +12,16 @@ import {
 } from "@/icons/icons";
 import StashPreviewModal from "./stash-preview-modal";
 import edit from "@/icons/edit.svg";
+import del from "@/icons/delete.svg";
 import Image from "next/image";
+import DeleteStashModal from "./delete-stash-modal";
 type Props = {
   stash: Stash;
   collectionName?: string;
   mode?: "home" | "collection";
   onView?: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 function LinkThumbnail({ url, title }: { url: string; title: string }) {
@@ -59,9 +62,16 @@ function ContentTypeIcon({ type }: { type: Stash["contentType"] }) {
   }
 }
 
-export function StashCard({ stash, mode = "home", onView, onEdit }: Props) {
+export function StashCard({
+  stash,
+  mode = "home",
+  onView,
+  onEdit,
+  onDelete,
+}: Props) {
   const [hovered, setHovered] = useState(false);
   const [previewStash, setPreviewStash] = useState<Stash | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const thumbnail =
     stash.metadata?.thumbnailUrl ??
@@ -74,15 +84,33 @@ export function StashCard({ stash, mode = "home", onView, onEdit }: Props) {
       case "link":
         window.open(stash.url, "_blank");
         break;
-      case "document":
-        const pdfUrl = stash.metadata?.cloudinaryUrl?.replace(
-          "/raw/upload/",
-          "/image/upload/fl_attachment:false/",
-        );
-        window.open(pdfUrl ?? stash.url, "_blank");
-        break;
       // case "document":
-      //   window.open(stash.metadata?.cloudinaryUrl ?? stash.url, "_blank");
+      //   const pdfUrl = stash.metadata?.cloudinaryUrl?.replace(
+      //     "/raw/upload/",
+      //     "/image/upload/fl_attachment:false/",
+      //   );
+      //   window.open(pdfUrl ?? stash.url, "_blank");
+      //   break;
+      case "document": {
+        const rawUrl = stash.metadata?.cloudinaryUrl ?? stash.url;
+        const isPdf =
+          rawUrl.toLowerCase().includes(".pdf") ||
+          stash.title?.toLowerCase().includes(".pdf");
+
+        if (isPdf) {
+          window.open(
+            `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}`,
+            "_blank",
+          );
+        } else {
+          // PowerPoint, Excel, Word → force download
+          const downloadUrl = rawUrl.includes("cloudinary.com")
+            ? rawUrl.replace("/raw/upload/", "/raw/upload/fl_attachment/")
+            : rawUrl;
+          window.open(downloadUrl, "_blank");
+        }
+        break;
+      }
       case "photo":
       case "video":
       case "note":
@@ -161,6 +189,15 @@ export function StashCard({ stash, mode = "home", onView, onEdit }: Props) {
                 <Image src={edit} alt="edit icon" height={18} width={18} />
                 Edit
               </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteOpen(true);
+                }}
+                className="flex items-center gap-2 bg-[#E7000B] text-sm font-medium px-4 py-2 rounded-sm  transition-colors shadow-sm"
+              >
+                <Image src={del} alt="edit icon" height={18} width={18} />
+              </button>
             </div>
           )}
         </div>
@@ -205,6 +242,16 @@ export function StashCard({ stash, mode = "home", onView, onEdit }: Props) {
       <StashPreviewModal
         stash={previewStash}
         onClose={() => setPreviewStash(null)}
+      />
+      <DeleteStashModal
+        open={deleteOpen}
+        stashTitle={stash.title}
+        stashId={stash.id}
+        onClose={() => setDeleteOpen(false)}
+        onDelete={() => {
+          setDeleteOpen(false);
+          onDelete?.();
+        }}
       />
     </>
   );

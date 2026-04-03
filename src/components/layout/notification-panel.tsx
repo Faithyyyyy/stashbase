@@ -11,6 +11,9 @@ import {
 import { IcX } from "@/icons/icons";
 import { useAuth } from "@/context/AuthContext";
 import { IcDocs } from "@/icons/icons";
+import { getStashById } from "@/lib/stash";
+import { Stash } from "@/types";
+import StashPreviewModal from "@/components/stash/stash-preview-modal";
 
 function groupByDate(notifications: Notification[]) {
   const groups: { label: string; items: Notification[] }[] = [];
@@ -42,6 +45,7 @@ export default function NotificationPanel() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [previewStash, setPreviewStash] = useState<Stash | null>(null);
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
@@ -83,6 +87,41 @@ export default function NotificationPanel() {
     await markNotificationRead(id);
     // refetch to get accurate unreadCount from backend
     fetchNotifications();
+  };
+  const handleView = async (n: Notification) => {
+    await markNotificationRead(n.id).catch(() => {});
+    fetchNotifications();
+
+    if (n.stashId) {
+      const stash = await getStashById(n.stashId).catch(() => null);
+      if (!stash) return;
+      setOpen(false);
+
+      if (stash.contentType === "link") {
+        window.open(stash.url, "_blank");
+      } else if (stash.contentType === "document") {
+        const rawUrl = stash.metadata?.cloudinaryUrl ?? stash.url;
+        const isPdf =
+          rawUrl.toLowerCase().includes(".pdf") ||
+          stash.title?.toLowerCase().includes(".pdf");
+
+        if (isPdf) {
+          window.open(
+            `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}`,
+            "_blank",
+          );
+        } else {
+          // PowerPoint, Excel, Word → force download
+          const downloadUrl = rawUrl.includes("cloudinary.com")
+            ? rawUrl.replace("/raw/upload/", "/raw/upload/fl_attachment/")
+            : rawUrl;
+          window.open(downloadUrl, "_blank");
+        }
+      } else {
+        // photo, video, note → preview modal
+        setPreviewStash(stash);
+      }
+    }
   };
 
   useEffect(() => {
@@ -206,7 +245,7 @@ export default function NotificationPanel() {
                             </p>
                             <div className="flex items-center gap-3 mt-3">
                               <button
-                                onClick={() => handleMarkRead(n.id)}
+                                onClick={() => handleView(n)}
                                 className="text-xs font-medium text-text-primary border border-[#022B3A] px-3 py-1.5 rounded-sm hover:bg-surface-base transition-colors"
                               >
                                 View
@@ -223,6 +262,10 @@ export default function NotificationPanel() {
           </div>
         </div>
       )}
+      <StashPreviewModal
+        stash={previewStash}
+        onClose={() => setPreviewStash(null)}
+      />
     </div>
   );
 }

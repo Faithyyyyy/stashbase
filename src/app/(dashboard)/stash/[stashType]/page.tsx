@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import StashGrid from "@/components/stash/stash-grid";
 import { useCollections } from "@/context/CollectionContext";
 import { EditStashModal } from "@/components/stash/edit-stash-modal";
+import { useStashRefresh } from "@/context/StashRefreshContext";
 export default function StashTypePage() {
   const { stashType } = useParams<{ stashType: string }>();
   const { openAddModal } = useAddStash();
@@ -20,6 +21,7 @@ export default function StashTypePage() {
   const [loading, setLoading] = useState(true);
   const [editStash, setEditStash] = useState<Stash | null>(null);
   const { collections } = useCollections();
+  const { refreshKey } = useStashRefresh();
   useEffect(() => {
     if (!stashType) return;
     getStashesByType(stashType)
@@ -31,7 +33,7 @@ export default function StashTypePage() {
         setStashes([]);
       })
       .finally(() => setLoading(false));
-  }, [stashType]);
+  }, [stashType, refreshKey]);
 
   if (loading) {
     return (

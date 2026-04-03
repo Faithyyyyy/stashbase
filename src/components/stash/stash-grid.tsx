@@ -10,12 +10,15 @@ import {
   IcVideo,
   IcCalendar,
 } from "@/icons/icons";
+import del from "@/icons/delete.svg";
 import { useState } from "react";
 import StashPreviewModal from "./stash-preview-modal";
 import { EditStashModal } from "./edit-stash-modal";
 import { useCollections } from "@/context/CollectionContext";
 import edit from "@/icons/edit.svg";
 import Image from "next/image";
+import DeleteStashModal from "./delete-stash-modal";
+import { useStashRefresh } from "@/context/StashRefreshContext";
 interface StashGridProps {
   items: Stash[];
   view: "grid" | "list";
@@ -48,15 +51,35 @@ export default function StashGrid({
   const { id } = useParams<{ id: string }>();
   const [previewStash, setPreviewStash] = useState<Stash | null>(null);
   const [editStash, setEditStash] = useState<Stash | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteStash, setDeleteStash] = useState<Stash | null>(null);
   const { collections } = useCollections();
+  const { triggerRefresh } = useStashRefresh();
   const handleView = (item: Stash) => {
     switch (item.contentType) {
       case "link":
         window.open(item.url, "_blank");
         break;
-      case "document":
-        window.open(item.metadata?.cloudinaryUrl ?? item.url, "_blank");
+      case "document": {
+        const rawUrl = item.metadata?.cloudinaryUrl ?? item.url;
+        const isPdf =
+          rawUrl.toLowerCase().includes(".pdf") ||
+          item.title?.toLowerCase().includes(".pdf");
+
+        if (isPdf) {
+          window.open(
+            `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}`,
+            "_blank",
+          );
+        } else {
+          // PowerPoint, Excel, Word → force download
+          const downloadUrl = rawUrl.includes("cloudinary.com")
+            ? rawUrl.replace("/raw/upload/", "/raw/upload/fl_attachment/")
+            : rawUrl;
+          window.open(downloadUrl, "_blank");
+        }
         break;
+      }
       case "photo":
       case "video":
       case "note":
@@ -66,6 +89,7 @@ export default function StashGrid({
         window.open(item.url, "_blank");
     }
   };
+
   if (view === "list") {
     return (
       <div className="space-y-2 w-full">
@@ -178,6 +202,16 @@ export default function StashGrid({
                   <Image src={edit} alt="edit icon" height={14} width={14} />
                   Edit
                 </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteStash(item);
+                    setDeleteOpen(true);
+                  }}
+                  className="flex items-center gap-2 bg-[#E7000B] text-sm font-medium px-3 py-1.5  rounded-sm  transition-colors shadow-sm"
+                >
+                  <Image src={del} alt="edit icon" height={18} width={18} />
+                </button>
               </div>
             </div>
           );
@@ -195,6 +229,20 @@ export default function StashGrid({
           onClose={() => setEditStash(null)}
           onSave={async () => {
             setEditStash(null);
+          }}
+        />
+        <DeleteStashModal
+          open={deleteOpen}
+          stashTitle={deleteStash?.title ?? ""}
+          stashId={deleteStash?.id ?? ""}
+          onClose={() => {
+            setDeleteOpen(false);
+            setDeleteStash(null);
+          }}
+          onDelete={() => {
+            setDeleteOpen(false);
+            setDeleteStash(null);
+            triggerRefresh();
           }}
         />
       </div>

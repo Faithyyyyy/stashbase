@@ -10,6 +10,10 @@ const StashRefreshContext = createContext<ContextType>({
 
 export function StashRefreshProvider({ children }: { children: ReactNode }) {
   const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = () => {
+    console.log("triggerRefresh called! new key:", refreshKey + 1);
+    setRefreshKey((k) => k + 1);
+  };
   return (
     <StashRefreshContext.Provider
       value={{ refreshKey, triggerRefresh: () => setRefreshKey((k) => k + 1) }}

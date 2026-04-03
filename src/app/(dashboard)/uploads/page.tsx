@@ -18,11 +18,20 @@ export default function UploadsPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"grid" | "list">("grid");
 
+  // useEffect(() => {
+  //   getUploads()
+  //     .then((data) => setStashes(data))
+  //     .catch(() => setStashes([]))
+  //     .finally(() => setLoading(false));
+  // }, [refreshKey]);
   useEffect(() => {
-    getUploads()
-      .then((data) => setStashes(data))
-      .catch(() => setStashes([]))
-      .finally(() => setLoading(false));
+    Promise.resolve().then(() => {
+      setLoading(true);
+      getUploads()
+        .then((data) => setStashes(data))
+        .catch(() => setStashes([]))
+        .finally(() => setLoading(false));
+    });
   }, [refreshKey]);
 
   return (

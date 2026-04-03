@@ -26,24 +26,27 @@ export default function Home() {
   const { collections } = useCollections();
   const { stashType } = useParams<{ stashType: string }>();
   useEffect(() => {
-    getStashes()
-      .then((data) => setStashes(data.allStashes))
-      .catch(() => setStashes([]))
-      .finally(() => setLoading(false));
+    console.log("dashboard refreshKey changed:", refreshKey);
+    Promise.resolve().then(() => {
+      setLoading(true);
+      getStashes()
+        .then((data) => setStashes(data.allStashes))
+        .catch(() => setStashes([]))
+        .finally(() => setLoading(false));
+    });
   }, [refreshKey]);
-  console.log(stashes);
-  useEffect(() => {
-    if (!stashType) return;
-    getStashesByType(stashType)
-      .then((data) => {
-        setStashes(data.allStashes);
-      })
-      .catch((err) => {
-        console.log("error:", err);
-        setStashes([]);
-      })
-      .finally(() => setLoading(false));
-  }, [stashType]);
+  // useEffect(() => {
+  //   if (!stashType) return;
+  //   getStashesByType(stashType)
+  //     .then((data) => {
+  //       setStashes(data.allStashes);
+  //     })
+  //     .catch((err) => {
+  //       console.log("error:", err);
+  //       setStashes([]);
+  //     })
+  //     .finally(() => setLoading(false));
+  // }, [stashType]);
 
   return (
     <div className="flex flex-col">
@@ -53,7 +56,7 @@ export default function Home() {
             Recently stashed
           </h2>
           <span className="text-gray">
-            Explore your recently stashed documents, videos, websites etc
+            Explore your recently stashed content..
           </span>
         </div>
         <div className="flex items-center gap-4">

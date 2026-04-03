@@ -40,7 +40,7 @@ export default function UploadModal({
   const collRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const STASH_TYPES = [
-    // { label: "Document", value: "Document" },
+    { label: "Document", value: "Document" },
     { label: "Photo", value: "Photo" },
     { label: "Video", value: "Video" },
     { label: "Note", value: "Note" },

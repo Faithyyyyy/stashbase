@@ -1,117 +1,3 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { getResurface, ResurfaceItem } from "@/lib/resurface";
-// import { getStashes } from "@/lib/stash";
-// import { Stash } from "@/types";
-// import { IcX } from "@/icons/icons";
-// import { useAuth } from "@/context/AuthContext";
-
-// export default function ResurfacePopup() {
-//   const { user } = useAuth();
-//   const [resurface, setResurface] = useState<ResurfaceItem | null>(null);
-//   const [stash, setStash] = useState<Stash | null>(null);
-//   const [visible, setVisible] = useState(false);
-//   const [dismissed, setDismissed] = useState(false);
-
-//   useEffect(() => {
-//     if (!user) return;
-//     // wait 3 seconds before showing
-//     const timer = setTimeout(() => {
-//       Promise.resolve().then(async () => {
-//         try {
-//           const data = await getResurface();
-//           setResurface(data);
-
-//           // fetch the stash details to get the title
-//           const stashesData = await getStashes();
-//           const found = stashesData.allStashes.find(
-//             (s) => s.id === data.stashId,
-//           );
-//           if (found) setStash(found);
-//           setVisible(true);
-//         } catch {
-//           // silently fail — resurface is non-critical
-//         }
-//       });
-//     }, 3000);
-
-//     return () => clearTimeout(timer);
-//   }, [user]);
-
-//   const handleDismiss = () => {
-//     setVisible(false);
-//     setTimeout(() => setDismissed(true), 300);
-//   };
-
-//   const handleView = () => {
-//     if (!stash) return;
-//     switch (stash.contentType) {
-//       case "link":
-//         window.open(stash.url, "_blank");
-//         break;
-//       case "document":
-//         window.open(
-//           `https://docs.google.com/viewer?url=${encodeURIComponent(
-//             stash.metadata?.cloudinaryUrl ?? stash.url,
-//           )}&embedded=false`,
-//           "_blank",
-//         );
-//         break;
-//       default:
-//         window.open(stash.metadata?.cloudinaryUrl ?? stash.url, "_blank");
-//     }
-//     handleDismiss();
-//   };
-
-//   if (dismissed || !resurface) return null;
-
-//   return (
-//     <div
-//       className="fixed bottom-6 left-1/2 z-50 transition-all duration-300"
-//       style={{
-//         transform: visible
-//           ? "translateX(-50%) translateY(0)"
-//           : "translateX(-50%) translateY(20px)",
-//         opacity: visible ? 1 : 0,
-//       }}
-//     >
-//       <div
-//         className="rounded-sm px-5 py-4 pb-6 flex flex-col gap-3 shadow-lg"
-//         style={{
-//           backgroundColor: "#022B3A",
-//           minWidth: "514px",
-//           maxWidth: "514px",
-//         }}
-//       >
-//         <div className="flex items-start justify-between gap-4">
-//           <div className="flex-1 min-w-0">
-//             <p className="text-white font-semibold text-sm mb-1">
-//               Stash Reminder
-//             </p>
-//             <p className="text-white/70 text-sm leading-relaxed">
-//               {resurface.reason}
-//             </p>
-//           </div>
-//           <button
-//             onClick={handleDismiss}
-//             className="text-white/50 hover:text-white transition-colors shrink-0 mt-0.5"
-//           >
-//             <IcX size={24} color="#fff" />
-//           </button>
-//         </div>
-
-//         <button
-//           onClick={handleView}
-//           className="self-start px-4 py-2 bg-white text-[#022B3A] text-sm font-semibold rounded-sm hover:bg-gray-100 transition-colors"
-//         >
-//           View
-//         </button>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -129,7 +15,6 @@ export default function ResurfacePopup() {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [showSnooze, setShowSnooze] = useState(false);
 
   useEffect(() => {
@@ -148,11 +33,8 @@ export default function ResurfacePopup() {
           setStash(res.data);
           setVisible(true);
 
-          // record "opened"
           await postInteraction({ stashId: data.stashId, action: "opened" });
-        } catch {
-          // silently fail
-        }
+        } catch {}
       });
     }, 3000);
     return () => clearTimeout(timer);

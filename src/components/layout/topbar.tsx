@@ -1,5 +1,6 @@
 "use client";
 import { IcSettings, IcAdd } from "@/icons/icons";
+import Settings from "@/assets/icons/settings.svg";
 import { Button } from "@/components/ui/index";
 import SemanticSearch from "@/components/stash/semantic-search";
 import { useRouter, usePathname } from "next/navigation";
@@ -7,7 +8,7 @@ import { useCollections } from "@/context/CollectionContext";
 import type { StashResult } from "@/components/stash/semantic-search";
 import { searchStashes } from "@/lib/stash";
 import NotificationPanel from "./notification-panel";
-
+import Image from "next/image";
 interface TopbarProps {
   onAdd: () => void;
 }
@@ -118,7 +119,8 @@ export default function Topbar({ onAdd }: TopbarProps) {
           className="cursor-pointer transition-colors"
           onClick={() => router.push("/settings")}
         >
-          <IcSettings size={16} />
+          <Image src={Settings} alt="settings" width={28} height={28} />
+          {/* <IcSettings size={16} /> */}
         </div>
       </div>
     </header>
