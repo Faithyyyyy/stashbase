@@ -135,8 +135,67 @@ export function CalendarPicker({
           {reminderTime || "Select time"}
           <IcChevDown size={12} />
         </button>
+        {/* {timeOpen && (
+          <div className="absolute top-full w-[85%] mx-auto left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 max-h-48 overflow-y-auto animate-slide-down">
+            {[
+              "06:00am",
+              "07:00am",
+              "08:00am",
+              "09:00am",
+              "10:00am",
+              "11:00am",
+              "12:00pm",
+              "01:00pm",
+              "02:00pm",
+              "03:00pm",
+              "04:00pm",
+              "05:00pm",
+              "06:00pm",
+              "07:00pm",
+              "08:00pm",
+              "09:00pm",
+              "10:00pm",
+            ].map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  onTimeChange(t);
+                  onTimeToggle();
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-2 text-[13px] transition-colors",
+                  reminderTime === t
+                    ? "bg-surface-base text-text-primary font-medium"
+                    : "text-text-secondary hover:bg-surface-base",
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )} */}
         {timeOpen && (
           <div className="absolute top-full w-[85%] mx-auto left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 max-h-48 overflow-y-auto animate-slide-down">
+            {/* Custom time input */}
+            <div className="px-3 py-2 border-b border-border">
+              <input
+                type="time"
+                onChange={(e) => {
+                  if (!e.target.value) return;
+                  const [hours, minutes] = e.target.value.split(":");
+                  const h = parseInt(hours);
+                  const suffix = h >= 12 ? "pm" : "am";
+                  const h12 = h % 12 === 0 ? 12 : h % 12;
+                  onTimeChange(
+                    `${String(h12).padStart(2, "0")}:${minutes}${suffix}`,
+                  );
+                }}
+                className="w-full text-sm text-text-primary border border-border rounded-sm px-2 py-1.5 outline-none focus:border-border-strong"
+                placeholder="Custom time"
+              />
+            </div>
+
+            {/* Preset times */}
             {[
               "06:00am",
               "07:00am",
