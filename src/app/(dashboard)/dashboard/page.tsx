@@ -26,7 +26,6 @@ export default function Home() {
   const { collections } = useCollections();
   const { stashType } = useParams<{ stashType: string }>();
   useEffect(() => {
-    console.log("dashboard refreshKey changed:", refreshKey);
     Promise.resolve().then(() => {
       setLoading(true);
       getStashes()

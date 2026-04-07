@@ -29,7 +29,6 @@ const CATEGORIES = [
     icon: <Image src={photos} alt="Photos" width={24} height={24} />,
   },
 ];
-console.log("CATEGORIES", CATEGORIES.length);
 export default function StashPage() {
   const router = useRouter();
 

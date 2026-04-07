@@ -151,6 +151,7 @@ export default function AddModal({
       return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T${String(hours).padStart(2, "0")}:${minutes}:00.000Z`;
     };
     try {
+      console.log(collectionId, buildReminderAt());
       const res = await createStash({
         url: url.trim(),
         title: title.trim() || url.trim(),

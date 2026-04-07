@@ -142,6 +142,8 @@ export default function UploadModal({
     setWarning("");
     setLoading(true);
     try {
+      console.log(collectionId, buildReminderAt(reminderDate, reminderTime));
+
       await createStashUpload({
         file,
         title: title || file.name,
@@ -455,21 +457,23 @@ export default function UploadModal({
             </div>
           )}
           {/* Footer */}
-          <div className="flex items-center justify-end gap-2.5 px-6 py-4">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 cursor-pointer rounded-sm text-sm font-medium text-text-secondary bg-[#F5F5F5]"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleAdd}
-              disabled={!file || loading}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-sm bg-foreground text-white hover:bg-[#1a4050] transition-colors disabled:cursor-not-allowed"
-            >
-              {loading ? "Uploading..." : "+ Add"}
-            </button>
-          </div>
+          {collections.length > 0 && (
+            <div className="flex items-center justify-end gap-2.5 px-6 py-4">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 cursor-pointer rounded-sm text-sm font-medium text-text-secondary bg-[#F5F5F5]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdd}
+                disabled={!file || loading}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-sm bg-foreground text-white hover:bg-[#1a4050] transition-colors disabled:cursor-not-allowed"
+              >
+                {loading ? "Uploading..." : "+ Add"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
