@@ -39,6 +39,7 @@ export default function AddModal({
   const [tag, setTag] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
   const [newCollectionOpen, setNewCollectionOpen] = useState(false);
   const [collOpen, setCollOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -103,7 +104,24 @@ export default function AddModal({
       setError("Link is required");
       return;
     }
+    if (!title) {
+      setError("Title is required");
+      return;
+    }
+    if (!collectionId) {
+      setWarning("Please select a collection or create one first.");
+      return;
+    }
+    if (!tag) {
+      setError("Please select type website");
+      return;
+    }
+    if (!reminderDate && reminderTime) {
+      setError("Please select a date for the reminder");
+      return;
+    }
     setError("");
+    setWarning("");
     setLoading(true);
     // const buildReminderAt = () => {
     //   if (!reminderDate) return undefined;
@@ -296,6 +314,7 @@ export default function AddModal({
                       }}
                       placeholder="https://"
                       className={inputCls}
+                      required
                     />
                   </Field>
 
@@ -307,6 +326,7 @@ export default function AddModal({
                       onKeyDown={(e) => e.key === "Enter" && handleAdd()}
                       placeholder=""
                       className={inputCls}
+                      required
                     />
                   </Field>
 
@@ -344,6 +364,7 @@ export default function AddModal({
                               key={c.id}
                               onClick={() => {
                                 setCollectionId(c.id);
+                                setWarning("");
                                 setCollOpen(false);
                               }}
                               className={cn(
@@ -444,7 +465,10 @@ export default function AddModal({
                   </button>
                   <button
                     onClick={handleAdd}
-                    disabled={!url.trim()}
+                    disabled={
+                      !url.trim() || !title || !collectionId || !tag
+                      // !(reminderTime && !reminderDate)
+                    }
                     className="flex items-center gap-1.5 px-4 py-1.5 rounded-sm text-sm bg-foreground text-white hover:bg-[#1a4050] transition-colors disabled:cursor-not-allowed active:scale-[0.98]"
                   >
                     <IcAdd size={16} />

@@ -152,7 +152,7 @@ export default function NotificationPanel() {
       >
         <Image src={Bell} alt="bell" width={21} height={21} />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute top-1 -right-1.5 w-2 h-2 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

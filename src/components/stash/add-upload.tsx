@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { buildReminderAt, cn } from "@/lib/utils";
-import { IcChevDown, IcX, IcUpload } from "@/icons/icons";
+import { IcChevDown, IcX, IcAdd, IcUpload } from "@/icons/icons";
 import { useCollections } from "@/context/CollectionContext";
 import { createCollection } from "@/lib/collections";
 import { createStashUpload } from "@/lib/stash";
@@ -122,8 +122,20 @@ export default function UploadModal({
       setError("Please select a file");
       return;
     }
+    if (!title) {
+      setError("Title is required");
+      return;
+    }
     if (!collectionId) {
       setWarning("Please select a collection or create one first.");
+      return;
+    }
+    if (!tag) {
+      setError("Please select type website");
+      return;
+    }
+    if (!reminderDate && reminderTime) {
+      setError("Please select a date for the reminder");
       return;
     }
     setError("");
@@ -194,227 +206,254 @@ export default function UploadModal({
               <IcX size={24} />
             </button>
           </div>
-
-          <div className="px-6 py-4 space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
-                {error}
+          {collections.length === 0 ? (
+            <div className="px-6 py-8 flex flex-col items-center text-center gap-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-900 mb-1">
+                  No collections yet
+                </p>
+                <p className="text-xs text-text-tertiary leading-relaxed">
+                  You need at least one collection before adding a stash. Create
+                  a collection first from the sidebar.
+                </p>
               </div>
-            )}
-            {warning && (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-lg px-4 py-2.5 flex items-center gap-2">
-                {warning}
+              <div className="flex items-center gap-2 mt-1">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-sm text-sm font-medium text-text-secondary bg-[#F5F5F5]"
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={() => setNewCollectionOpen(true)}
-                  className="ml-auto text-yellow-800 font-semibold underline underline-offset-2 hover:text-yellow-900 whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-sm text-sm font-medium bg-foreground text-white hover:bg-[#1a4050] transition-colors"
                 >
-                  Create one
+                  <IcAdd size={14} />
+                  Create collection
                 </button>
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="px-6 py-4 space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-2.5">
+                  {error}
+                </div>
+              )}
+              {warning && (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-lg px-4 py-2.5 flex items-center gap-2">
+                  {warning}
+                  <button
+                    onClick={() => setNewCollectionOpen(true)}
+                    className="ml-auto text-yellow-800 font-semibold underline underline-offset-2 hover:text-yellow-900 whitespace-nowrap"
+                  >
+                    Create one
+                  </button>
+                </div>
+              )}
 
-            {/* File dropzone */}
-            {!file ? (
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragging(true);
-                }}
-                onDragLeave={() => setDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={cn(
-                  "border border-[#D4D4D4] rounded-md py-10 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors",
-                  dragging
-                    ? "border-foreground bg-surface-base"
-                    : "border-border hover:border-border-strong hover:bg-surface-base",
-                )}
-              >
-                <IcUpload size={28} />
-                <p className="text-sm font-medium text-text-secondary">
-                  Select to add images, documents, videos
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFile(f);
+              {/* File dropzone */}
+              {!file ? (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragging(true);
                   }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={cn(
+                    "border border-[#D4D4D4] rounded-md py-10 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors",
+                    dragging
+                      ? "border-foreground bg-surface-base"
+                      : "border-border hover:border-border-strong hover:bg-surface-base",
+                  )}
+                >
+                  <IcUpload size={28} />
+                  <p className="text-sm font-medium text-text-secondary">
+                    Select to add images, documents, videos
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFile(f);
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 border border-border rounded-xl px-4 py-3">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-text-tertiary shrink-0"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-text-primary truncate">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-text-tertiary">
+                      {(file.size / 1024 / 1024).toFixed(1)}MB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setFile(null)}
+                    className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    Replace
+                  </button>
+                </div>
+              )}
+
+              {/* Title */}
+              <div>
+                <label className="text-sm font-semibold text-text-primary block mb-1.5">
+                  Title
+                </label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder=""
+                  className={inputCls}
                 />
               </div>
-            ) : (
-              <div className="flex items-center gap-3 border border-border rounded-xl px-4 py-3">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-text-tertiary shrink-0"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-text-primary truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-xs text-text-tertiary">
-                    {(file.size / 1024 / 1024).toFixed(1)}MB
-                  </p>
+
+              {/* Collection */}
+              <div>
+                <label className="text-sm font-semibold text-text-primary block mb-1.5">
+                  Collection
+                </label>
+                <div ref={collRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCollOpen((o) => !o)}
+                    className={cn(
+                      inputCls,
+                      "flex items-center justify-between text-left w-full",
+                    )}
+                  >
+                    <span
+                      className={
+                        selectedCollection
+                          ? "text-text-primary"
+                          : "text-[#737373] font-normal"
+                      }
+                    >
+                      {selectedCollection?.name ?? "Select collection"}
+                    </span>
+                    <IcChevDown
+                      size={14}
+                      className="text-text-tertiary shrink-0"
+                    />
+                  </button>
+                  {collOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 animate-slide-down overflow-hidden max-h-48 overflow-y-auto">
+                      {collections.map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() => {
+                            setCollectionId(c.id);
+                            setCollOpen(false);
+                            setWarning("");
+                          }}
+                          className={cn(
+                            "w-full text-left px-4 py-2 capitalize text-[13px] transition-colors",
+                            collectionId === c.id
+                              ? "bg-surface-base text-text-primary font-medium"
+                              : "text-text-secondary hover:bg-surface-base",
+                          )}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <button
-                  onClick={() => setFile(null)}
-                  className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                >
-                  Replace
-                </button>
               </div>
-            )}
-
-            {/* Title */}
-            <div>
-              <label className="text-sm font-semibold text-text-primary block mb-1.5">
-                Title
-              </label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder=""
-                className={inputCls}
-              />
-            </div>
-
-            {/* Collection */}
-            <div>
-              <label className="text-sm font-semibold text-text-primary block mb-1.5">
-                Collection
-              </label>
-              <div ref={collRef} className="relative">
+              {/* Tags */}
+              <div>
+                <label className="text-sm font-semibold text-text-primary block mb-1.5">
+                  Type
+                </label>
+                <div ref={tagsRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagsOpen((o) => !o);
+                      setCollOpen(false);
+                    }}
+                    className={cn(
+                      inputCls,
+                      "flex items-center justify-between text-left w-full",
+                    )}
+                  >
+                    <span
+                      className={
+                        tag ? "text-text-primary" : "text-[#737373] font-normal"
+                      }
+                    >
+                      {selectedTag?.label ?? "Select type"}
+                    </span>
+                    <IcChevDown
+                      size={14}
+                      className="text-text-tertiary shrink-0"
+                    />
+                  </button>
+                  {tagsOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 animate-slide-down overflow-hidden max-h-48 overflow-y-auto">
+                      {STASH_TYPES.map((type) => (
+                        <button
+                          key={type.value}
+                          onClick={() => {
+                            setTag(type.value);
+                            setTagsOpen(false);
+                          }}
+                          className={cn(
+                            "w-full text-left px-4 py-2 text-[13px] transition-colors",
+                            tag === type.value
+                              ? "bg-surface-base text-text-primary font-medium"
+                              : "text-text-secondary hover:bg-surface-base",
+                          )}
+                        >
+                          {type.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Reminder */}
+              <div>
+                <label className="text-sm font-semibold text-text-primary block mb-1.5">
+                  Reminder
+                </label>
                 <button
+                  ref={calendarTriggerRef}
                   type="button"
-                  onClick={() => setCollOpen((o) => !o)}
+                  onClick={openCalendar}
                   className={cn(
                     inputCls,
                     "flex items-center justify-between text-left w-full",
+                    !reminderDate && "text-text-disabled",
                   )}
                 >
-                  <span
-                    className={
-                      selectedCollection
-                        ? "text-text-primary"
-                        : "text-[#737373] font-normal"
-                    }
-                  >
-                    {selectedCollection?.name ?? "Select collection"}
-                  </span>
-                  <IcChevDown
-                    size={14}
-                    className="text-text-tertiary shrink-0"
-                  />
+                  <span>{reminderDate || "DD/MM/YY"}</span>
+                  <IcCal size={18} />
                 </button>
-                {collOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 animate-slide-down overflow-hidden max-h-48 overflow-y-auto">
-                    {collections.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          setCollectionId(c.id);
-                          setCollOpen(false);
-                          setWarning("");
-                        }}
-                        className={cn(
-                          "w-full text-left px-4 py-2 capitalize text-[13px] transition-colors",
-                          collectionId === c.id
-                            ? "bg-surface-base text-text-primary font-medium"
-                            : "text-text-secondary hover:bg-surface-base",
-                        )}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
-            {/* Tags */}
-            <div>
-              <label className="text-sm font-semibold text-text-primary block mb-1.5">
-                Type
-              </label>
-              <div ref={tagsRef} className="relative">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTagsOpen((o) => !o);
-                    setCollOpen(false);
-                  }}
-                  className={cn(
-                    inputCls,
-                    "flex items-center justify-between text-left w-full",
-                  )}
-                >
-                  <span
-                    className={
-                      tag ? "text-text-primary" : "text-[#737373] font-normal"
-                    }
-                  >
-                    {selectedTag?.label ?? "Select type"}
-                  </span>
-                  <IcChevDown
-                    size={14}
-                    className="text-text-tertiary shrink-0"
-                  />
-                </button>
-                {tagsOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-modal z-10 py-1 animate-slide-down overflow-hidden max-h-48 overflow-y-auto">
-                    {STASH_TYPES.map((type) => (
-                      <button
-                        key={type.value}
-                        onClick={() => {
-                          setTag(type.value);
-                          setTagsOpen(false);
-                        }}
-                        className={cn(
-                          "w-full text-left px-4 py-2 text-[13px] transition-colors",
-                          tag === type.value
-                            ? "bg-surface-base text-text-primary font-medium"
-                            : "text-text-secondary hover:bg-surface-base",
-                        )}
-                      >
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            {/* Reminder */}
-            <div>
-              <label className="text-sm font-semibold text-text-primary block mb-1.5">
-                Reminder
-              </label>
-              <button
-                ref={calendarTriggerRef}
-                type="button"
-                onClick={openCalendar}
-                className={cn(
-                  inputCls,
-                  "flex items-center justify-between text-left w-full",
-                  !reminderDate && "text-text-disabled",
-                )}
-              >
-                <span>{reminderDate || "DD/MM/YY"}</span>
-                <IcCal size={18} />
-              </button>
-            </div>
-          </div>
-
+          )}
           {/* Footer */}
           <div className="flex items-center justify-end gap-2.5 px-6 py-4">
             <button
